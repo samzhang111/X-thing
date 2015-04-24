@@ -1,26 +1,36 @@
 (function() {
     // Actual dimensions of a single character
-    var actual_height, actual_width;
+    var actual_height, actual_width, client_x, client_y, scheduledAnimateFrame=false,
+        space_elem, window_height, window_width;
     
     // Measure the dimensions of a character on window load
     document.addEventListener("DOMContentLoaded", function(event) { 
         var test_div = document.getElementById('measure');
-        test_div.innerHTML = 'a';
+        test_div.textContent = 'a';
         actual_width = test_div.clientWidth;
         actual_height = test_div.clientHeight;
-        test_div.innerHTML = '';
+        test_div.textContent = '';
+        space_elem = document.getElementById("space");
     });
-    
-    document.onmousemove = handleMouseMove;
-    function handleMouseMove(event) {
-        var dot, eventDoc, doc, body, pageX, pageY;
+    window.addEventListener('resize', function(event){
+         window_height = window.innerHeight;
+         window_width = window.innerWidth;
+    });
+
+    document.addEventListener("mousemove", function (event) {
+        // Only act if the last animation has completed.
+        if (scheduledAnimateFrame === true) {
+            return;
+        }
+
+        var dot, eventDoc, doc, body;
 
         event = event || window.event; // IE-ism
 
         // If pageX/Y aren't available and clientX/Y are,
         // calculate pageX/Y - logic taken from jQuery.
         // (This is to support old IE)
-        if (event.pageX == null && event.clientX != null) {
+        if (event.pageX === null && event.clientX !== null) {
             eventDoc = (event.target && event.target.ownerDocument) || document;
             doc = eventDoc.documentElement;
             body = eventDoc.body;
@@ -33,16 +43,19 @@
               (doc && doc.clientTop  || body && body.clientTop  || 0 );
         }
         
-        redraw(event.pageX, event.pageY);   
-    }
+        client_x = event.pageX;
+        client_y = event.pageY;
+        window.requestAnimationFrame(redraw); 
+        scheduledAnimateFrame = true;
+    });
 
-    function redraw(client_x, client_y) {
+    function redraw(timestamp) {
         // Insert spaces or X's into div#space based off x and y.
         
         var x = Math.ceil(client_x/actual_width) - 1,
             y = Math.ceil(client_y/actual_height) - 1,
-            x_chars = Math.floor(window.innerWidth/actual_width) - 1,
-            y_chars = Math.floor(window.innerHeight/actual_height) - 1,
+            x_chars = Math.floor(window_width/actual_width) - 1,
+            y_chars = Math.floor(window_height/actual_height) - 1,
             space_string = "";
         
         for (j=0; j<y_chars; j++) {
@@ -64,11 +77,12 @@
                     space_string += "x";
                 }
                 else {
-                    space_string += "&nbsp;";
+                    space_string += " ";
                 }
             }
             space_string += "\n";
         }
-        document.getElementById("space").innerHTML = space_string;       
+        space_elem.textContent = space_string;
+        scheduledAnimateFrame = false;
     }
 })();
