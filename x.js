@@ -11,13 +11,17 @@
         actual_height = test_div.clientHeight;
         test_div.textContent = '';
         space_elem = document.getElementById("space");
+        window_height = window.innerHeight;
+        window_width = window.innerWidth;
+        document.addEventListener("mousemove", mousemove_handler);
     });
+
     window.addEventListener('resize', function(event){
          window_height = window.innerHeight;
          window_width = window.innerWidth;
     });
 
-    document.addEventListener("mousemove", function (event) {
+    function mousemove_handler (event) {
         // Only act if the last animation has completed.
         if (scheduledAnimateFrame === true) {
             return;
@@ -47,7 +51,7 @@
         client_y = event.pageY;
         window.requestAnimationFrame(redraw); 
         scheduledAnimateFrame = true;
-    });
+    }
 
     function redraw(timestamp) {
         // Insert spaces or X's into div#space based off x and y.
